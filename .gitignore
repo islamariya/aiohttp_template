@@ -1,1 +1,3 @@
 /app/logs/data/log_file.log
+/app/logs/data/stats_file.log
+/.env

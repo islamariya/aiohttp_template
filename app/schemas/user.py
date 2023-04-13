@@ -1,7 +1,7 @@
 from uuid import uuid4
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field, UUID4, validator
+from pydantic import BaseModel, constr, EmailStr, Field, UUID4, validator
 
 from typing import Optional
 
@@ -10,10 +10,10 @@ from app.utils.dt import convert_dt_to_str
 
 
 class UserCreate(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: str = Field(max_length=40)
+    last_name: str = Field(max_length=120)
     email: EmailStr
-    phone: str
+    phone: str = Field(max_length=10)
     role: Optional[UserRoles]
     password: str
 
@@ -25,12 +25,12 @@ class UserCreate(BaseModel):
 
 
 class UserAuth(BaseModel):
-    user_name: str
+    user_name: str = Field(max_length=10)
     password: str
 
 
 class UserTokenRefresh(BaseModel):
-    user_id: str
+    user_id: UUID4
     refresh_token: str
 
 

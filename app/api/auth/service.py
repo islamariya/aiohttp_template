@@ -50,7 +50,7 @@ async def authenticate_user(session: AsyncSession,
 
 async def validate_refresh_token(token_data: UserTokenRefresh):
     payload = decode_token(token=token_data.refresh_token)
-    if token_data.user_id != payload.get("user_id"):
+    if str(token_data.user_id) != payload.get("user_id"):
         logger.error("User Id {} does not match token", token_data.user_id)
         raise InvalidCredentials
 
