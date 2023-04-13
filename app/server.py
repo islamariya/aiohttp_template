@@ -1,4 +1,5 @@
 import uuid
+from functools import partial
 import time
 
 from aiohttp.web import (Application, middleware,
@@ -12,7 +13,7 @@ from app.api.auth.jwt_security import auth_middleware
 from app.api.routes import app_routes
 
 from app.constants.handlers import ResponseType
-from app.db.connection import db_connection
+from app.db.connection import DbConnection
 from app.logs.logger import logger
 from app.settings import STATIC_DIR, STATIC_PATH, REQUEST_ID_HEADER_NAME
 
@@ -75,13 +76,14 @@ def json_response_middleware():
             enriched_logger.info("Error Response has sent: {} - {}", error_type, error_message)
 
         return json_response(data=response_data,
-                                 status=status)
+                             status=status)
 
     return json_middleware
 
 
-async def on_startup(app: Application):
+async def on_startup(app: Application, db_url: str):
     # _t = humanize.i18n.activate("ru_RU")
+    db_connection = DbConnection(db_url=db_url)
     app["db"] = db_connection
 
 
@@ -89,7 +91,7 @@ async def on_cleanup(app: Application):
     await app["db"].stop()
 
 
-def create_app() -> Application:
+def create_app(db_url) -> Application:
     request_middleware = request_id_middleware()
     json_response_convertor = json_response_middleware()
     app = Application(middlewares=[request_middleware,
@@ -100,7 +102,7 @@ def create_app() -> Application:
                           path=STATIC_DIR,
                           name='static')
     # setup(app, loader=FileSystemLoader("core/api/ra_admin/templates"))
-    app.on_startup.append(on_startup)
+    app.on_startup.append(partial(on_startup, db_url=db_url))
     app.on_cleanup.append(on_cleanup)
 
     return app

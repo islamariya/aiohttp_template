@@ -5,11 +5,9 @@ from sqlalchemy.ext.asyncio import (AsyncSession,
 from app.settings import settings
 
 
-class DbConnection:
-    TEMPLATE = "{dialect}+{driver}://{user_name}:{password}@{host}/{db_name}"
-
-    def __init__(self, settings):
-        self.db_url = DbConnection.TEMPLATE.format(
+def create_postgres_url(settings) -> str:
+    template = "{dialect}+{driver}://{user_name}:{password}@{host}/{db_name}"
+    return template.format(
             dialect=settings.database_dialect,
             driver=settings.database_driver,
             user_name=settings.postgres_user,
@@ -18,7 +16,12 @@ class DbConnection:
             db_name=settings.database_name
         )
 
-        self.engine = create_async_engine(self.db_url,
+
+class DbConnection:
+
+    def __init__(self, db_url):
+
+        self.engine = create_async_engine(url=db_url,
                                           echo=False,
                                           future=True)
 
@@ -32,4 +35,6 @@ class DbConnection:
         await self.engine.dispose()
 
 
-db_connection = DbConnection(settings)
+db_url = create_postgres_url(settings=settings)
+
+db_connection = DbConnection(db_url=db_url)
